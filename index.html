@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DBS DataMatrix Generator</title>
+    <title>DataMatrix Generator</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
@@ -57,7 +57,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="settings-card p-4">
-                    <h2 class="mb-4">DBS DataMatrix Generator</h2>
+                    <h2 class="mb-4">DBS Datamatrix Creator</h2>
                     
                     <div class="row">
                         <!-- Preview Section -->
@@ -79,44 +79,29 @@
                                 <textarea id="msg" class="form-control" rows="3" placeholder="Enter the datamatrix details"></textarea>
                             </div>
 
+                            <!-- Calculator Link Section -->
                             <div class="mb-3">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="isRectangle" checked>
-                                    <label class="form-check-label" for="isRectangle">Rectangle</label>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="faceColor" class="form-label">Face Color</label>
-                                <input type="color" id="faceColor" class="color-input" value="#000000">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="backgroundColor" class="form-label">Background Color</label>
-                                <input type="color" id="backgroundColor" class="color-input" value="#ffffff">
+                                <a href="https://docs.google.com/spreadsheets/d/1iSF-zmKiurlZSp4tnt2J_ZmUNPV9fH-_zj3eDHE5ovo/edit?gid=1517386867#gid=1517386867" 
+                                   class="btn btn-outline-secondary w-100" 
+                                   target="_blank">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calculator me-2" viewBox="0 0 16 16">
+                                        <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                                        <path d="M4 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-2zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-4z"/>
+                                    </svg>
+                                    Datamatrix Content Calculator
+                                </a>
                             </div>
 
                             <!-- Hidden inputs for fixed values -->
                             <input type="hidden" id="dimension" value="256">
                             <input type="hidden" id="padding" value="2">
                             <input type="hidden" id="isOptimized" value="true">
+                            <input type="hidden" id="isRectangle" value="true">
+                            <input type="hidden" id="faceColor" value="#000000">
+                            <input type="hidden" id="backgroundColor" value="#ffffff">
+                        </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Calculator Link Section -->
-            <div class="row justify-content-center mt-4">
-                <div class="col-lg-10 text-center">
-                    <a href="https://docs.google.com/spreadsheets/d/1iSF-zmKiurlZSp4tnt2J_ZmUNPV9fH-_zj3eDHE5ovo/edit?gid=1517386867#gid=1517386867" 
-                       class="btn btn-outline-secondary" 
-                       target="_blank">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calculator me-2" viewBox="0 0 16 16">
-                            <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
-                            <path d="M4 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-2zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-4z"/>
-                        </svg>
-                        DataMatrix Content Calculator
-                    </a>
                 </div>
             </div>
         </div>
@@ -152,10 +137,10 @@
                 const data = {
                     msg: msg.value,
                     dim: parseInt(dimension.value),
-                    rct: isRectangle.checked ? 1 : 0,
+                    rct: 1,  // Force rectangular format
                     pad: parseInt(padding.value),
                     pal: [faceColor.value, backgroundColor.value],
-                    vrb: isOptimized.checked ? 0 : 1
+                    vrb: true
                 };
 
                 try {
