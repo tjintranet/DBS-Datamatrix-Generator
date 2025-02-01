@@ -83,6 +83,13 @@
                                 <label for="msg" class="form-label">Enter Details</label>
                                 <textarea id="msg" class="form-control" rows="3" placeholder="Enter the datamatrix details"></textarea>
                             </div>
+                            
+                            <!-- Reset Button Section -->
+						<div class="mb-3">
+   						<button class="btn btn-secondary w-100" id="resetBtn">
+        				Reset
+    					</button>
+						</div>
 
                             <!-- Calculator Link Section -->
                             <div class="mb-3">
@@ -131,7 +138,27 @@
             const faceColor = document.getElementById('faceColor');
             const backgroundColor = document.getElementById('backgroundColor');
             const downloadBtn = document.getElementById('downloadBtn');
+			const resetBtn = document.getElementById('resetBtn');
 
+			function resetFields() {
+    		// Clear the message textarea
+    		msg.value = 'Enter the datamatrix details';
+    
+    		// Reset other hidden inputs to their default values
+    		dimension.value = '256';
+    		padding.value = '2';
+    		isRectangle.value = 'true';
+    		isOptimized.value = 'true';
+    		faceColor.value = '#000000';
+    		backgroundColor.value = '#ffffff';
+
+    		// Update the DataMatrix preview
+    		updateDataMatrix();
+			}
+
+			// Event listener for the reset button
+			resetBtn.addEventListener('click', resetFields);	
+		
             function updateDataMatrix() {
                 // Clear the preview box
                 while (box.firstChild) {
