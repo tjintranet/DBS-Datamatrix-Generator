@@ -49,11 +49,93 @@
         }
         
         textarea.form-control {
-            color: #adb5bd;
+            color: #212529;
         }
         
-        textarea.form-control:focus {
-            color: #212529;
+        .invalid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 80%;
+            color: #dc3545;
+        }
+        
+        .is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+        
+        .char-counter {
+            font-size: 80%;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        
+        .char-counter.error {
+            color: #dc3545;
+        }
+        
+        .char-counter.success {
+            color: #198754;
+        }
+        
+        .file-upload-card {
+            border: 1px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+        
+        .file-upload-card:hover {
+            border-color: #6c757d;
+            background-color: #e9ecef;
+        }
+        
+        .excel-data-table {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        
+        .nav-tabs .nav-link {
+            cursor: pointer;
+        }
+        
+        .nav-tabs .nav-link.active {
+            font-weight: 500;
+        }
+        
+        .tab-content {
+            padding-top: 1rem;
+        }
+        
+        .preview-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .debug-panel {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
         }
     </style>
 </head>
@@ -68,31 +150,93 @@
                         <!-- Preview Section -->
                         <div class="col-md-6 mb-4">
                             <div class="preview-box" id="box"></div>
-                            <button class="btn btn-primary w-100" id="downloadBtn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-2" viewBox="0 0 16 16">
-                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                                </svg>
-                                Download PDF
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary flex-grow-1" id="downloadBtn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-2" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg>
+                                    Download PDF
+                                </button>
+                                <button class="btn btn-secondary" id="resetBtn">
+                                    Reset
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Settings Section -->
                         <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="msg" class="form-label">Enter Details</label>
-                                <textarea id="msg" class="form-control" rows="3" placeholder="Enter the datamatrix details"></textarea>
+                            <ul class="nav nav-tabs" id="inputTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="true">Manual Input</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel" type="button" role="tab" aria-controls="excel" aria-selected="false">Excel Upload</button>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content" id="inputTabsContent">
+                                <!-- Manual Input Tab -->
+                                <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+                                    <div class="mb-3">
+                                        <label for="msg" class="form-label">Enter Details</label>
+                                        <textarea id="msg" class="form-control" rows="3" placeholder="Enter the datamatrix details"></textarea>
+                                        <div class="invalid-feedback">
+                                            Input must be exactly 37 digits (0-9).
+                                        </div>
+                                        <div class="char-counter" id="digitCounter">0/37 digits</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Excel Upload Tab -->
+                                <div class="tab-pane fade" id="excel" role="tabpanel" aria-labelledby="excel-tab">
+                                    <div class="mb-3">
+                                        <label class="form-label">Upload Excel File</label>
+                                        <div class="file-upload-card" id="fileUploadCard">
+                                            <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#6c757d" class="bi bi-file-earmark-excel mb-2" viewBox="0 0 16 16">
+                                                <path d="M5.884 6.68a.5.5 0 1 0-.768.64L7.349 10l-2.233 2.68a.5.5 0 0 0 .768.64L8 10.781l2.116 2.54a.5.5 0 0 0 .768-.641L8.651 10l2.233-2.68a.5.5 0 0 0-.768-.64L8 9.219l-2.116-2.54z"/>
+                                                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                                            </svg>
+                                            <p class="mb-0">Click to upload Excel file or drag and drop</p>
+                                            <p class="small text-muted mb-0">Must contain ISBN, Trim Height, Trim Width, Spine Size, and Cut Off data</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="excelDataPreview" class="excel-data-table d-none">
+                                        <div class="preview-info mb-2">Excel data preview:</div>
+                                        <table class="table table-sm table-bordered">
+                                            <thead id="excelTableHead">
+                                                <tr>
+                                                    <th>ISBN</th>
+                                                    <th>Height</th>
+                                                    <th>Width</th>
+                                                    <th>Spine</th>
+                                                    <th>Cut Off</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="excelTableBody">
+                                                <!-- Excel data rows will be inserted here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="generatedCode" class="form-label">Generated Code</label>
+                                        <input type="text" id="generatedCode" class="form-control" readonly>
+                                        <div class="invalid-feedback">
+                                            Could not generate a valid 37-digit code from Excel data.
+                                        </div>
+                                    </div>
+                                    
+                                    <button class="btn btn-outline-secondary w-100" id="manualMapBtn">
+                                        Manual Column Mapping
+                                    </button>
+                                </div>
                             </div>
                             
-                            <!-- Reset Button Section -->
-						<div class="mb-3">
-   						<button class="btn btn-secondary w-100" id="resetBtn">
-        				Reset
-    					</button>
-						</div>
-
                             <!-- Calculator Link Section -->
-                            <div class="mb-3">
+                            <div class="mb-3 mt-3">
                                 <a href="https://docs.google.com/spreadsheets/d/1iSF-zmKiurlZSp4tnt2J_ZmUNPV9fH-_zj3eDHE5ovo/edit?gid=1517386867#gid=1517386867" 
                                    class="btn btn-outline-secondary w-100" 
                                    target="_blank">
@@ -111,9 +255,86 @@
                             <input type="hidden" id="isRectangle" value="true">
                             <input type="hidden" id="faceColor" value="#000000">
                             <input type="hidden" id="backgroundColor" value="#ffffff">
-                        </div>
+                            
+                            <!-- Debug panel (hidden by default, toggle with Ctrl+Shift+D) -->
+                            <div id="debugPanel" class="debug-panel">
+                                <h5>Debug Information</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Excel Data (First Row)</label>
+                                    <textarea id="debugData" class="form-control" rows="4" readonly></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Column Mapping</label>
+                                    <textarea id="debugMapping" class="form-control" rows="3" readonly></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Test Barcode Generation</label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" id="testISBN" class="form-control" placeholder="ISBN (13 digits)" value="9781234567890">
+                                        <input type="text" id="testHeight" class="form-control" placeholder="Height (mm)" value="210">
+                                        <input type="text" id="testWidth" class="form-control" placeholder="Width (mm)" value="148">
+                                        <input type="text" id="testSpine" class="form-control" placeholder="Spine (mm)" value="8.5">
+                                        <input type="text" id="testCutOff" class="form-control" placeholder="Cut Off (mm)" value="221">
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Trim Off Foot will be calculated as: Cut_Off - (Height + 6)</small>
+                                    </div>
+                                    <button id="testBarcodeBtn" class="btn btn-sm btn-secondary">Test Barcode Generation</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Manual Mapping Modal -->
+    <div class="modal fade" id="mappingModal" tabindex="-1" aria-labelledby="mappingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mappingModalLabel">Manual Column Mapping</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Select which columns from your Excel file correspond to each required field:</p>
+                    <form id="mappingForm">
+                        <div class="mb-3">
+                            <label for="isbnColumn" class="form-label">ISBN Column</label>
+                            <select class="form-select" id="isbnColumn" required>
+                                <option value="">Select column</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="heightColumn" class="form-label">Height Column</label>
+                            <select class="form-select" id="heightColumn" required>
+                                <option value="">Select column</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="widthColumn" class="form-label">Width Column</label>
+                            <select class="form-select" id="widthColumn" required>
+                                <option value="">Select column</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="spineColumn" class="form-label">Spine Column</label>
+                            <select class="form-select" id="spineColumn" required>
+                                <option value="">Select column</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cutOffColumn" class="form-label">Cut-Off Column</label>
+                            <select class="form-select" id="cutOffColumn" required>
+                                <option value="">Select column</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="applyMappingBtn">Apply Mapping</button>
                 </div>
             </div>
         </div>
@@ -122,13 +343,20 @@
     <!-- Include the DataMatrix library -->
     <script src="datamatrix.js"></script>
     
+    <!-- Include SheetJS library for Excel processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <!-- Include jsPDF library for PDF conversion -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <!-- Include Bootstrap JS for tabs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 
     <script>
         'use strict';
 
         document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
             const box = document.getElementById('box');
             const msg = document.getElementById('msg');
             const dimension = document.getElementById('dimension');
@@ -138,36 +366,590 @@
             const faceColor = document.getElementById('faceColor');
             const backgroundColor = document.getElementById('backgroundColor');
             const downloadBtn = document.getElementById('downloadBtn');
-			const resetBtn = document.getElementById('resetBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const digitCounter = document.getElementById('digitCounter');
+            const fileUploadCard = document.getElementById('fileUploadCard');
+            const excelFile = document.getElementById('excelFile');
+            const excelDataPreview = document.getElementById('excelDataPreview');
+            const excelTableBody = document.getElementById('excelTableBody');
+            const generatedCode = document.getElementById('generatedCode');
+            const manualMapBtn = document.getElementById('manualMapBtn');
+            const mappingModal = new bootstrap.Modal(document.getElementById('mappingModal'));
+            const debugPanel = document.getElementById('debugPanel');
+            
+            // Excel data and column mapping
+            let excelData = null;
+            let availableHeaders = [];
+            let columnMapping = {
+                isbn: null,
+                height: null,
+                width: null,
+                spine: null,
+                cutOff: null
+            };
+            
+            // Validation function - checks if input is exactly 37 digits
+            function validateInput(input) {
+                // Remove any non-digit characters for counting
+                const digitsOnly = input.replace(/\D/g, '');
+                const digitCount = digitsOnly.length;
+                
+                // Update the digit counter
+                digitCounter.textContent = `${digitCount}/37 digits`;
+                
+                // Set counter color based on validation
+                if (digitCount === 37) {
+                    digitCounter.classList.remove('error');
+                    digitCounter.classList.add('success');
+                    msg.classList.remove('is-invalid');
+                    return true;
+                } else {
+                    digitCounter.classList.remove('success');
+                    digitCounter.classList.add('error');
+                    // Only show invalid state if user has started typing
+                    if (input !== 'Enter the datamatrix details' && input !== '') {
+                        msg.classList.add('is-invalid');
+                    }
+                    return false;
+                }
+            }
+            
+            // Function to pad a number with leading zeros to a specific length
+            function padWithZeros(num, targetLength) {
+                return num.toString().padStart(targetLength, '0');
+            }
+            
+            // Function to generate barcode string from Excel data
+            function generateBarcodeString(row) {
+                try {
+                    // Log for debugging
+                    console.log("Generating barcode from row:", row);
+                    console.log("Using column mapping:", columnMapping);
+                    
+                    // Extract values using the mapping
+                    let isbn = row[columnMapping.isbn];
+                    let height = row[columnMapping.height];
+                    let width = row[columnMapping.width];
+                    let spine = row[columnMapping.spine];
+                    let cutOff = row[columnMapping.cutOff];
+                    
+                    // Log raw values
+                    console.log("Raw values:");
+                    console.log("ISBN:", isbn, typeof isbn);
+                    console.log("Height:", height, typeof height);
+                    console.log("Width:", width, typeof width);
+                    console.log("Spine:", spine, typeof spine);
+                    console.log("Cut-Off:", cutOff, typeof cutOff);
+                    
+                    // Process ISBN
+                    if (isbn === undefined || isbn === null || isbn === '') {
+                        console.error("ISBN is missing");
+                        return null;
+                    }
+                    
+                    // Convert to string and keep only digits
+                    isbn = String(isbn).replace(/\D/g, '');
+                    
+                    // Ensure ISBN is exactly 13 digits
+                    if (isbn.length > 13) {
+                        isbn = isbn.substring(0, 13);
+                    } else if (isbn.length < 13) {
+                        isbn = isbn.padStart(13, '0');
+                    }
+                    
+                    // Process measurement values
+                    // Clean up and convert to numbers
+                    function cleanMeasurement(value) {
+                        if (value === undefined || value === null || value === '') return 0;
+                        if (typeof value === 'string') {
+                            // Remove any non-digit characters except decimal point
+                            value = value.replace(/[^\d.]/g, '');
+                        }
+                        return parseFloat(value) || 0;
+                    }
+                    
+                    height = cleanMeasurement(height);
+                    width = cleanMeasurement(width);
+                    spine = cleanMeasurement(spine);
+                    cutOff = cleanMeasurement(cutOff);
+                    
+                    console.log("Cleaned measurements:");
+                    console.log("Height:", height);
+                    console.log("Width:", width);
+                    console.log("Spine:", spine);
+                    console.log("Cut-Off:", cutOff);
+                    
+                    // Format values for the barcode string
+                    // Convert to mm*100 (integer) and pad with zeros
+                    
+                    // Height (5 digits)
+                    const heightFormatted = padWithZeros(Math.round(height * 100), 5).substring(0, 5);
+                    
+                    // Width (5 digits)
+                    const widthFormatted = padWithZeros(Math.round(width * 100), 5).substring(0, 5);
+                    
+                    // Spine with special handling for 1-9 range (5 digits)
+                    let spineFormatted;
+                    if (spine >= 1 && spine < 10) {
+                        // For spine 1-9, add leading zero before the decimal point was removed
+                        const spineInt = Math.round(spine * 100);
+                        spineFormatted = padWithZeros(spineInt, 5).substring(0, 5);
+                    } else {
+                        spineFormatted = padWithZeros(Math.round(spine * 100), 5).substring(0, 5);
+                    }
+                    
+                    // Cut-Off (5 digits)
+                    const cutOffFormatted = padWithZeros(Math.round(cutOff * 100), 5).substring(0, 5);
+                    
+                    // Calculate Trim Off Foot value (2 digits)
+                    // Formula: Cut_Off - (Trim_Height + 6)
+                    const trimOffFoot = cutOff - (height + 6);
+                    // Format Trim Off Foot - if 1-9, add leading zero
+                    const trimOffFootFormatted = padWithZeros(Math.round(trimOffFoot), 2).substring(0, 2);
+                    
+                    console.log("Formatted values:");
+                    console.log("ISBN:", isbn);
+                    console.log("Height:", heightFormatted);
+                    console.log("Width:", widthFormatted);
+                    console.log("Spine:", spineFormatted);
+                    console.log("Cut-Off:", cutOffFormatted);
+                    console.log("Trim Off Foot:", trimOffFootFormatted);
+                    
+                    // Format values according to the specified rules:
+                    
+                    // 1. ISBN = 13 digits (already handled)
+                    
+                    // 2. Endsheet Height = 0000 (fixed value)
+                    const endsheetHeight = "0000";
+                    
+                    // 3. Spine Size = If 2 digits, add trailing zero. If 1 digit, add leading zero and trailing zero
+                    let spineSegment;
+                    const spineRounded = Math.round(spine);
+                    if (spineRounded >= 10) {
+                        // 2-digit spine - add trailing zero
+                        spineSegment = spineRounded.toString() + "0";
+                    } else {
+                        // 1-digit spine - add leading zero and trailing zero
+                        spineSegment = "0" + spineRounded.toString() + "0";
+                    }
+                    
+                    // 4. Book Block Height = 3 digits plus trailing zero
+                    // Assuming Book Block Height is the Cut-Off value
+                    const bbHeight = Math.round(cutOff);
+                    const bbHeightSegment = padWithZeros(bbHeight, 3) + "0";
+                    
+                    // 5. Trim Off Foot = Book Block Height minus Trim Height + 3 with special formatting
+                    const trimOffCalc = bbHeight - Math.round(height) + 3;
+                    let trimOffSegment;
+                    
+                    if (trimOffCalc < 10) {
+                        // Single digit - add 2 leading zeros and trailing zero
+                        trimOffSegment = "00" + trimOffCalc.toString() + "0";
+                    } else {
+                        // Double digit - add leading zero and trailing zero
+                        trimOffSegment = "0" + trimOffCalc.toString() + "0";
+                    }
+                    
+                    // 6. Trim Height = 3 digits plus trailing zero
+                    const trimHeightSegment = padWithZeros(Math.round(height), 3) + "0";
+                    
+                    // 7. Trim Width = 3 digits plus trailing zero
+                    const trimWidthSegment = padWithZeros(Math.round(width), 3) + "0";
+                    
+                    // 8. Transfer Station = 1
+                    const transferStation = "1";
+                    
+                    // Debug output for all formatted values
+                    console.log("Formatted values:");
+                    console.log("ISBN:", isbn);
+                    console.log("Endsheet Height:", endsheetHeight);
+                    console.log("Spine Size:", spineSegment);
+                    console.log("Book Block Height:", bbHeightSegment);
+                    console.log("Trim Off Foot:", trimOffSegment);
+                    console.log("Trim Height:", trimHeightSegment);
+                    console.log("Trim Width:", trimWidthSegment);
+                    console.log("Transfer Station:", transferStation);
+                    
+                    // Assemble the barcode string
+                    // Format: ISBN (13) | Endsheet Height (4) | Spine (3) | BB Height (4) | Trim Off (4) | Trim Height (4) | Trim Width (4) | Station (1)
+                    const barcodeString = 
+                        isbn +                // 13 digits
+                        endsheetHeight +      // 4 digits
+                        spineSegment +        // 3 digits
+                        bbHeightSegment +     // 4 digits
+                        trimOffSegment +      // 4 digits
+                        trimHeightSegment +   // 4 digits
+                        trimWidthSegment +    // 4 digits
+                        transferStation;      // 1 digit
+                    
+                    console.log("Generated barcode string:", barcodeString);
+                    console.log("Length:", barcodeString.length);
+                    
+                    // Validate the generated string
+                    if (barcodeString.length !== 37) {
+                        console.error("Invalid barcode length:", barcodeString.length);
+                        return null;
+                    }
+                    
+                    if (/\D/.test(barcodeString)) {
+                        console.error("Barcode contains non-digits");
+                        return null;
+                    }
+                    
+                    return barcodeString;
+                } catch (error) {
+                    console.error("Error generating barcode:", error);
+                    return null;
+                }
+            }
+            
+            // Function to find the best column match
+            function findBestColumnMatch(headers, target) {
+                if (!headers || headers.length === 0) return null;
+                
+                const targetLower = target.toLowerCase();
+                
+                // Direct match
+                const directMatch = headers.find(h => h.toLowerCase() === targetLower);
+                if (directMatch) return directMatch;
+                
+                // Partial matches
+                const partialMatches = headers.filter(h => {
+                    const headerLower = h.toLowerCase();
+                    return headerLower.includes(targetLower) || 
+                           targetLower.includes(headerLower);
+                });
+                
+                if (partialMatches.length > 0) {
+                    // Return the shortest partial match as it's likely the most specific
+                    return partialMatches.sort((a, b) => a.length - b.length)[0];
+                }
+                
+                // Special cases for common variations
+                if (targetLower === 'isbn') {
+                    const isbnVariations = ["limp_isbn", "isbn13", "ean", "barcode", "isbn_13", "product_id", "id", "code"];
+                    for (const variation of isbnVariations) {
+                        const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
+                        if (match) return match;
+                    }
+                }
+                
+                if (targetLower === 'height') {
+                    const heightVariations = ["trim_height", "product_height", "height_mm", "h", "book_height", "finished_height"];
+                    for (const variation of heightVariations) {
+                        const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
+                        if (match) return match;
+                    }
+                }
+                
+                if (targetLower === 'width') {
+                    const widthVariations = ["trim_width", "product_width", "width_mm", "w", "book_width", "finished_width"];
+                    for (const variation of heightVariations) {
+                        const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
+                        if (match) return match;
+                    }
+                }
+                
+                if (targetLower === 'spine') {
+                    const spineVariations = ["spine_size", "spine_width", "spine_mm", "thickness", "book_thickness", "s"];
+                    for (const variation of spineVariations) {
+                        const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
+                        if (match) return match;
+                    }
+                }
+                
+                if (targetLower === 'cutoff') {
+                    const cutOffVariations = ["cut_off", "cutoff", "bleed", "trim", "margin", "cut"];
+                    for (const variation of cutOffVariations) {
+                        const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
+                        if (match) return match;
+                    }
+                }
+                
+                // No match found
+                return null;
+            }
+            
+            // Update the preview table with Excel data
+            function updateExcelPreview() {
+                if (!excelData || excelData.length === 0) return;
+                
+                // Update table header with column names
+                const thead = document.getElementById('excelTableHead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>${columnMapping.isbn || 'ISBN'}</th>
+                        <th>${columnMapping.height || 'Height'}</th>
+                        <th>${columnMapping.width || 'Width'}</th>
+                        <th>${columnMapping.spine || 'Spine'}</th>
+                        <th>${columnMapping.cutOff || 'Cut Off'}</th>
+                    </tr>
+                `;
+                
+                // Display first few rows
+                let tableHtml = '';
+                const maxRows = Math.min(excelData.length, 5);
+                
+                for (let i = 0; i < maxRows; i++) {
+                    const row = excelData[i];
+                    tableHtml += `
+                        <tr>
+                            <td>${row[columnMapping.isbn] || ''}</td>
+                            <td>${row[columnMapping.height] || ''}</td>
+                            <td>${row[columnMapping.width] || ''}</td>
+                            <td>${row[columnMapping.spine] || ''}</td>
+                            <td>${row[columnMapping.cutOff] || ''}</td>
+                        </tr>
+                    `;
+                }
+                
+                excelTableBody.innerHTML = tableHtml;
+            }
+            
+            // Function to process and display Excel data
+            function processExcelFile(file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = e.target.result;
+                        console.log("Reading Excel file:", file.name);
+                        
+                        // Parse Excel file
+                        const workbook = XLSX.read(data, {
+                            type: 'array',
+                            cellDates: true,
+                            cellNF: true,
+                            raw: false
+                        });
+                        
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        // Convert to JSON
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                            raw: false,
+                            dateNF: 'yyyy-mm-dd',
+                            defval: ''
+                        });
+                        
+                        if (jsonData.length === 0) {
+                            alert('No data found in the Excel file.');
+                            return;
+                        }
+                        
+                        console.log("Excel data:", jsonData.slice(0, 2));
+                        
+                        // Store data for later use
+                        excelData = jsonData;
+                        
+                        // Get available headers
+                        availableHeaders = Object.keys(jsonData[0]);
+                        console.log("Available headers:", availableHeaders);
+                        
+                        // Try to map columns automatically
+                        columnMapping = {
+                            isbn: findBestColumnMatch(availableHeaders, 'isbn'),
+                            height: findBestColumnMatch(availableHeaders, 'height'),
+                            width: findBestColumnMatch(availableHeaders, 'width'),
+                            spine: findBestColumnMatch(availableHeaders, 'spine'),
+                            cutOff: findBestColumnMatch(availableHeaders, 'cutoff')
+                        };
+                        
+                        console.log("Automatic column mapping:", columnMapping);
+                        
+                        // Check if all required columns were found
+                        const missingColumns = Object.entries(columnMapping)
+                            .filter(([_, value]) => value === null)
+                            .map(([key, _]) => key);
+                        
+                        // If any columns are missing, open the manual mapping modal
+                        if (missingColumns.length > 0) {
+                            console.warn("Missing columns:", missingColumns);
+                            showMappingModal();
+                            return;
+                        }
+                        
+                        // Update the Excel preview and generate barcode
+                        updateExcelPreview();
+                        excelDataPreview.classList.remove('d-none');
+                        
+                        // Try to generate barcode from first row
+                        const barcodeString = generateBarcodeString(jsonData[0]);
+                        if (barcodeString) {
+                            generatedCode.value = barcodeString;
+                            generatedCode.classList.remove('is-invalid');
+                            updateDataMatrix();
+                        } else {
+                            generatedCode.value = '';
+                            generatedCode.classList.add('is-invalid');
+                            console.error("Failed to generate barcode");
+                            alert("Could not generate a valid barcode from the Excel data. Please check the console for details or try manual column mapping.");
+                        }
+                        
+                        // Update debug panel if visible
+                        updateDebugPanel();
+                        
+                    } catch (error) {
+                        console.error('Error processing Excel file:', error);
+                        alert('Error processing Excel file: ' + error.message);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    alert('Error reading the Excel file.');
+                };
+                
+                reader.readAsArrayBuffer(file);
+            }
+            
+            // Function to show mapping modal with available columns
+            function showMappingModal() {
+                if (!availableHeaders || availableHeaders.length === 0) {
+                    alert('No Excel data available. Please upload an Excel file first.');
+                    return;
+                }
+                
+                // Populate select dropdowns with available headers
+                const selects = ['isbnColumn', 'heightColumn', 'widthColumn', 'spineColumn', 'cutOffColumn'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    select.innerHTML = '<option value="">Select column</option>';
+                    
+                    availableHeaders.forEach(header => {
+                        const option = document.createElement('option');
+                        option.value = header;
+                        option.textContent = header;
+                        select.appendChild(option);
+                    });
+                    
+                    // Set current value if available
+                    const field = selectId.replace('Column', '');
+                    const mappedValue = columnMapping[field];
+                    if (mappedValue) {
+                        select.value = mappedValue;
+                    }
+                });
+                
+                // Show the modal
+                mappingModal.show();
+            }
+            
+            // Apply the manual column mapping
+            function applyManualMapping() {
+                columnMapping = {
+                    isbn: document.getElementById('isbnColumn').value,
+                    height: document.getElementById('heightColumn').value,
+                    width: document.getElementById('widthColumn').value,
+                    spine: document.getElementById('spineColumn').value,
+                    cutOff: document.getElementById('cutOffColumn').value
+                };
+                
+                console.log("Manual column mapping:", columnMapping);
+                
+                // Check if all fields are selected
+                const missingFields = Object.entries(columnMapping)
+                    .filter(([_, value]) => !value)
+                    .map(([key, _]) => key);
+                
+                if (missingFields.length > 0) {
+                    alert(`Please select columns for: ${missingFields.join(', ')}`);
+                    return;
+                }
+                
+                // Hide the modal
+                mappingModal.hide();
+                
+                // Update the preview and try to generate barcode
+                updateExcelPreview();
+                excelDataPreview.classList.remove('d-none');
+                
+                const barcodeString = generateBarcodeString(excelData[0]);
+                if (barcodeString) {
+                    generatedCode.value = barcodeString;
+                    generatedCode.classList.remove('is-invalid');
+                    updateDataMatrix();
+                } else {
+                    generatedCode.value = '';
+                    generatedCode.classList.add('is-invalid');
+                    alert('Could not generate a valid barcode string. Please check your data format.');
+                }
+                
+                // Update debug panel if visible
+                updateDebugPanel();
+            }
+            
+            // Reset all fields and states
+            function resetFields() {
+                // Clear the message textarea
+                msg.value = '';
+                msg.placeholder = 'Enter the datamatrix details';
+                
+                // Reset validation states
+                msg.classList.remove('is-invalid');
+                digitCounter.textContent = '0/37 digits';
+                digitCounter.classList.remove('success', 'error');
+                
+                // Reset Excel section
+                excelFile.value = '';
+                excelDataPreview.classList.add('d-none');
+                excelTableBody.innerHTML = '';
+                generatedCode.value = '';
+                generatedCode.classList.remove('is-invalid');
+                excelData = null;
+                availableHeaders = [];
+                
+                // Reset column mapping
+                columnMapping = {
+                    isbn: null,
+                    height: null,
+                    width: null,
+                    spine: null,
+                    cutOff: null
+                };
+                
+                // Reset hidden inputs to defaults
+                dimension.value = '256';
+                padding.value = '2';
+                isRectangle.value = 'true';
+                isOptimized.value = 'true';
+                faceColor.value = '#000000';
+                backgroundColor.value = '#ffffff';
 
-			function resetFields() {
-    		// Clear the message textarea
-    		msg.value = 'Enter the datamatrix details';
-    
-    		// Reset other hidden inputs to their default values
-    		dimension.value = '256';
-    		padding.value = '2';
-    		isRectangle.value = 'true';
-    		isOptimized.value = 'true';
-    		faceColor.value = '#000000';
-    		backgroundColor.value = '#ffffff';
-
-    		// Update the DataMatrix preview
-    		updateDataMatrix();
-			}
-
-			// Event listener for the reset button
-			resetBtn.addEventListener('click', resetFields);	
-		
+                // Update the DataMatrix preview
+                updateDataMatrix();
+            }
+            
+            // Update DataMatrix function
             function updateDataMatrix() {
                 // Clear the preview box
                 while (box.firstChild) {
                     box.removeChild(box.firstChild);
                 }
+                
+                // Get the input text from either manual input or Excel-generated code
+                let inputText = '';
+                const activeTabId = document.querySelector('.tab-pane.active').id;
+                
+                if (activeTabId === 'manual') {
+                    inputText = msg.value;
+                    // Don't proceed with generation if input is invalid and not empty/default
+                    if (inputText !== 'Enter the datamatrix details' && 
+                        inputText !== '' && 
+                        !validateInput(inputText)) {
+                        return;
+                    }
+                } else {
+                    inputText = generatedCode.value;
+                    // Don't proceed if no valid code has been generated
+                    if (!inputText || inputText.length !== 37) {
+                        return;
+                    }
+                }
 
                 // Generate new DataMatrix
                 const data = {
-                    msg: msg.value,
+                    msg: inputText,
                     dim: parseInt(dimension.value),
                     rct: 1,  // Force rectangular format
                     pad: parseInt(padding.value),
@@ -183,75 +965,240 @@
                 }
             }
 
+            // Download the DataMatrix as PDF
             function downloadPDF() {
-                const { jsPDF } = window.jspdf;
+                // Get the input text from either manual input or Excel-generated code
+                let inputText = '';
+                const activeTabId = document.querySelector('.tab-pane.active').id;
+                
+                if (activeTabId === 'manual') {
+                    inputText = msg.value;
+                    // Don't proceed if the input is empty or default
+                    if (inputText === 'Enter the datamatrix details' || inputText.trim() === '') {
+                        alert('Please enter data before downloading.');
+                        return;
+                    }
+                    
+                    // Don't proceed if input is invalid
+                    if (!validateInput(inputText)) {
+                        alert('Please enter exactly 37 digits before downloading.');
+                        return;
+                    }
+                } else {
+                    inputText = generatedCode.value;
+                    // Don't proceed if no valid code has been generated
+                    if (!inputText || inputText.trim() === '') {
+                        alert('Please upload an Excel file to generate data first.');
+                        return;
+                    }
+                    
+                    if (inputText.length !== 37) {
+                        alert('Please generate a valid 37-digit barcode from the Excel data first.');
+                        return;
+                    }
+                }
+                
                 const svg = box.querySelector('svg');
-                const svgData = new XMLSerializer().serializeToString(svg);
+                if (!svg) {
+                    alert('Please generate a valid Data Matrix first.');
+                    return;
+                }
                 
-                // Create a canvas to render the SVG
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                try {
+                    // Access jsPDF from the window object
+                    const { jsPDF } = window.jspdf;
+                    
+                    if (!jsPDF) {
+                        throw new Error("jsPDF library not loaded");
+                    }
+                    
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    
+                    // Create a canvas to render the SVG
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Create an image from SVG
+                    const img = new Image();
+                    img.onload = function() {
+                        // Define barcode dimensions and margins
+                        const widthScaleFactor = 1.10;  // Perfect for width
+                        const heightScaleFactor = 1.27; // Increased for height
+                        const barcodeWidth = 17 * widthScaleFactor;   // Compensated width
+                        const barcodeHeight = 6 * heightScaleFactor;  // Compensated height
+                        const margin = 10; // 10mm margin
+                        
+                        // Calculate page dimensions
+                        const pageWidth = barcodeWidth + (margin * 2);
+                        const pageHeight = barcodeHeight + (margin * 2);
+                        
+                        // Create PDF with custom size (barcode + margins)
+                        const pdf = new jsPDF({
+                            orientation: pageWidth > pageHeight ? 'landscape' : 'portrait',
+                            unit: 'mm',
+                            format: [Math.max(pageWidth, pageHeight), Math.min(pageWidth, pageHeight)]
+                        });
+                        
+                        // Set canvas size for high resolution
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // Draw SVG
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Calculate centering
+                        const xOffset = (pdf.internal.pageSize.getWidth() - barcodeWidth) / 2;
+                        const yOffset = (pdf.internal.pageSize.getHeight() - barcodeHeight) / 2;
+                        
+                        // Add the image to PDF centered
+                        pdf.addImage(
+                            canvas.toDataURL('image/png'),
+                            'PNG',
+                            xOffset,
+                            yOffset,
+                            barcodeWidth,
+                            barcodeHeight
+                        );
+                        
+                        // Download the PDF
+                        pdf.save(`datamatrix-${new Date().toISOString().slice(0, 19).replace(/[:]/g, '')}.pdf`);
+                    };
+                    
+                    img.onerror = function() {
+                        alert('Error converting SVG to image');
+                        console.error('Image load error');
+                    };
+                    
+                    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                    
+                } catch (error) {
+                    console.error('PDF generation error:', error);
+                    alert('Error generating PDF: ' + error.message + '. Check if the jsPDF library is loaded correctly.');
+                }
+            }
+            
+            // Update debug panel with current data
+            function updateDebugPanel() {
+                if (document.getElementById('debugPanel').style.display === 'block') {
+                    if (excelData && excelData.length > 0) {
+                        document.getElementById('debugData').value = JSON.stringify(excelData[0], null, 2);
+                        document.getElementById('debugMapping').value = JSON.stringify(columnMapping, null, 2);
+                    }
+                }
+            }
+            
+            // Event Listeners
+            
+            // Manual input events
+            msg.addEventListener('input', function() {
+                validateInput(this.value);
+                updateDataMatrix();
+            });
+            
+            // Excel file upload events
+            fileUploadCard.addEventListener('click', function() {
+                excelFile.click();
+            });
+            
+            excelFile.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    processExcelFile(this.files[0]);
+                }
+            });
+            
+            // Drag and drop for Excel files
+            fileUploadCard.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.backgroundColor = '#e9ecef';
+            });
+            
+            fileUploadCard.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            
+            fileUploadCard.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.backgroundColor = '#f8f9fa';
                 
-                // Create an image from SVG
-                const img = new Image();
-                img.onload = function() {
-                    // Define barcode dimensions and margins
-                    const widthScaleFactor = 1.10;  // Perfect for width
-                    const heightScaleFactor = 1.27; // Increased for height
-                    const barcodeWidth = 17 * widthScaleFactor;   // Compensated width
-                    const barcodeHeight = 6 * heightScaleFactor;  // Compensated height
-                    const margin = 10; // 10mm margin
-                    
-                    // Calculate page dimensions
-                    const pageWidth = barcodeWidth + (margin * 2);
-                    const pageHeight = barcodeHeight + (margin * 2);
-                    
-                    // Create PDF with custom size (barcode + margins)
-                    const pdf = new jsPDF({
-                        orientation: pageWidth > pageHeight ? 'landscape' : 'portrait',
-                        unit: 'mm',
-                        format: [Math.max(pageWidth, pageHeight), Math.min(pageWidth, pageHeight)]
-                    });
-                    
-                    // Set canvas size for high resolution
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    
-                    // Draw SVG
-                    ctx.drawImage(img, 0, 0);
-                    
-                    // Calculate centering
-                    const xOffset = (pdf.internal.pageSize.getWidth() - barcodeWidth) / 2;
-                    const yOffset = (pdf.internal.pageSize.getHeight() - barcodeHeight) / 2;
-                    
-                    // Add the image to PDF centered
-                    pdf.addImage(
-                        canvas.toDataURL('image/png'),
-                        'PNG',
-                        xOffset,
-                        yOffset,
-                        barcodeWidth,
-                        barcodeHeight
-                    );
-                    
-                    // Download the PDF
-                    pdf.save(`datamatrix-${new Date().toISOString().slice(0, 19).replace(/[:]/g, '')}.pdf`);
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        processExcelFile(file);
+                    } else {
+                        alert('Please upload an Excel file (.xlsx or .xls)');
+                    }
+                }
+            });
+                        
+            // Manual mapping button
+            manualMapBtn.addEventListener('click', showMappingModal);
+            
+            // Apply mapping button
+            document.getElementById('applyMappingBtn').addEventListener('click', applyManualMapping);
+            
+            // Tab change events
+            document.getElementById('inputTabs').addEventListener('shown.bs.tab', updateDataMatrix);
+            
+            // Debug panel toggle (Ctrl+Shift+D)
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                    e.preventDefault();
+                    const debugPanel = document.getElementById('debugPanel');
+                    debugPanel.style.display = debugPanel.style.display === 'none' || debugPanel.style.display === '' ? 'block' : 'none';
+                    updateDebugPanel();
+                }
+            });
+            
+            // Debug panel test button
+            document.getElementById('testBarcodeBtn').addEventListener('click', function() {
+                const testData = {
+                    'Test_ISBN': document.getElementById('testISBN').value,
+                    'Test_Height': document.getElementById('testHeight').value,
+                    'Test_Width': document.getElementById('testWidth').value,
+                    'Test_Spine': document.getElementById('testSpine').value,
+                    'Test_CutOff': document.getElementById('testCutOff').value
                 };
                 
-                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-            }
-
-            // Event listeners
-            msg.addEventListener('input', updateDataMatrix);
-            isRectangle.addEventListener('change', updateDataMatrix);
-            faceColor.addEventListener('change', updateDataMatrix);
-            backgroundColor.addEventListener('change', updateDataMatrix);
+                const testMapping = {
+                    isbn: 'Test_ISBN',
+                    height: 'Test_Height',
+                    width: 'Test_Width',
+                    spine: 'Test_Spine',
+                    cutOff: 'Test_CutOff'
+                };
+                
+                // Save current mapping
+                const originalMapping = {...columnMapping};
+                
+                // Use test mapping
+                columnMapping = testMapping;
+                
+                // Try to generate barcode
+                const testBarcode = generateBarcodeString(testData);
+                
+                // Restore original mapping
+                columnMapping = originalMapping;
+                
+                if (testBarcode) {
+                    alert('Test success! Generated barcode: ' + testBarcode);
+                } else {
+                    alert('Test failed! Check console for details.');
+                }
+            });
+            
+            // Other event listeners
             downloadBtn.addEventListener('click', downloadPDF);
-
+            resetBtn.addEventListener('click', resetFields);
+            
             // Clear initial message when focused
             msg.addEventListener('focus', function() {
                 if (msg.value === 'Enter the datamatrix details') {
                     msg.value = '';
+                    validateInput('');
                 }
             });
 
@@ -259,11 +1206,15 @@
             msg.addEventListener('blur', function() {
                 if (msg.value.trim() === '') {
                     msg.value = 'Enter the datamatrix details';
+                    digitCounter.textContent = '0/37 digits';
+                    digitCounter.classList.remove('success', 'error');
+                    msg.classList.remove('is-invalid');
                 }
             });
 
             // Initial generation
             msg.value = 'Enter the datamatrix details';
+            digitCounter.textContent = '0/37 digits';
             updateDataMatrix();
         });
     </script>
