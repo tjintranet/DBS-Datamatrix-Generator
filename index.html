@@ -137,6 +137,34 @@
             border-radius: 4px;
             background: #f9f9f9;
         }
+
+        .trim-off-toggle {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .toggle-values {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .current-value {
+            font-weight: 600;
+            color: #0d6efd;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -166,6 +194,22 @@
 
                         <!-- Settings Section -->
                         <div class="col-md-6">
+                            <!-- Trim Off Head Toggle -->
+                            <div class="trim-off-toggle">
+                                <div class="toggle-label">Trim Off Head Setting</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="trimOffToggle" checked>
+                                    <label class="form-check-label" for="trimOffToggle">
+                                        Use 0070 (Default)
+                                    </label>
+                                </div>
+                                <div class="toggle-values">
+                                    <span class="current-value" id="currentTrimOffValue">Current: 0070</span>
+                                    <br>
+                                    <small>Toggle: ON = 0070 | OFF = 0030</small>
+                                </div>
+                            </div>
+
                             <ul class="nav nav-tabs" id="inputTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="true">Manual Input</button>
@@ -277,7 +321,7 @@
                                         <input type="text" id="testCutOff" class="form-control" placeholder="Cut Off (mm)" value="221">
                                     </div>
                                     <div class="mb-2">
-                                        <small class="text-muted">Trim Off Foot will be calculated as: Cut_Off - (Height + 6)</small>
+                                        <small class="text-muted">Trim Off Head is now fixed based on toggle setting</small>
                                     </div>
                                     <button id="testBarcodeBtn" class="btn btn-sm btn-secondary">Test Barcode Generation</button>
                                 </div>
@@ -376,6 +420,8 @@
             const manualMapBtn = document.getElementById('manualMapBtn');
             const mappingModal = new bootstrap.Modal(document.getElementById('mappingModal'));
             const debugPanel = document.getElementById('debugPanel');
+            const trimOffToggle = document.getElementById('trimOffToggle');
+            const currentTrimOffValue = document.getElementById('currentTrimOffValue');
             
             // Excel data and column mapping
             let excelData = null;
@@ -387,6 +433,19 @@
                 spine: null,
                 cutOff: null
             };
+            
+            // Function to get current trim off head value based on toggle
+            function getTrimOffHeadValue() {
+                return trimOffToggle.checked ? "0070" : "0030";
+            }
+            
+            // Function to update trim off display
+            function updateTrimOffDisplay() {
+                const value = getTrimOffHeadValue();
+                currentTrimOffValue.textContent = `Current: ${value}`;
+                const label = trimOffToggle.nextElementSibling;
+                label.textContent = trimOffToggle.checked ? "Use 0070 (Default)" : "Use 0030 (Alternative)";
+            }
             
             // Validation function - checks if input is exactly 37 digits
             function validateInput(input) {
@@ -479,42 +538,6 @@
                     console.log("Spine:", spine);
                     console.log("Cut-Off:", cutOff);
                     
-                    // Format values for the barcode string
-                    // Convert to mm*100 (integer) and pad with zeros
-                    
-                    // Height (5 digits)
-                    const heightFormatted = padWithZeros(Math.round(height * 100), 5).substring(0, 5);
-                    
-                    // Width (5 digits)
-                    const widthFormatted = padWithZeros(Math.round(width * 100), 5).substring(0, 5);
-                    
-                    // Spine with special handling for 1-9 range (5 digits)
-                    let spineFormatted;
-                    if (spine >= 1 && spine < 10) {
-                        // For spine 1-9, add leading zero before the decimal point was removed
-                        const spineInt = Math.round(spine * 100);
-                        spineFormatted = padWithZeros(spineInt, 5).substring(0, 5);
-                    } else {
-                        spineFormatted = padWithZeros(Math.round(spine * 100), 5).substring(0, 5);
-                    }
-                    
-                    // Cut-Off (5 digits)
-                    const cutOffFormatted = padWithZeros(Math.round(cutOff * 100), 5).substring(0, 5);
-                    
-                    // Calculate Trim Off Foot value (2 digits)
-                    // Formula: Cut_Off - (Trim_Height + 6)
-                    const trimOffFoot = cutOff - (height + 6);
-                    // Format Trim Off Foot - if 1-9, add leading zero
-                    const trimOffFootFormatted = padWithZeros(Math.round(trimOffFoot), 2).substring(0, 2);
-                    
-                    console.log("Formatted values:");
-                    console.log("ISBN:", isbn);
-                    console.log("Height:", heightFormatted);
-                    console.log("Width:", widthFormatted);
-                    console.log("Spine:", spineFormatted);
-                    console.log("Cut-Off:", cutOffFormatted);
-                    console.log("Trim Off Foot:", trimOffFootFormatted);
-                    
                     // Format values according to the specified rules:
                     
                     // 1. ISBN = 13 digits (already handled)
@@ -538,17 +561,8 @@
                     const bbHeight = Math.round(cutOff);
                     const bbHeightSegment = padWithZeros(bbHeight, 3) + "0";
                     
-                    // 5. Trim Off Foot = Book Block Height minus Trim Height + 3 with special formatting
-                    const trimOffCalc = bbHeight - Math.round(height) + 3;
-                    let trimOffSegment;
-                    
-                    if (trimOffCalc < 10) {
-                        // Single digit - add 2 leading zeros and trailing zero
-                        trimOffSegment = "00" + trimOffCalc.toString() + "0";
-                    } else {
-                        // Double digit - add leading zero and trailing zero
-                        trimOffSegment = "0" + trimOffCalc.toString() + "0";
-                    }
+                    // 5. Trim Off Head = FIXED VALUE based on toggle (0070 or 0030)
+                    const trimOffSegment = getTrimOffHeadValue();
                     
                     // 6. Trim Height = 3 digits plus trailing zero
                     const trimHeightSegment = padWithZeros(Math.round(height), 3) + "0";
@@ -565,19 +579,19 @@
                     console.log("Endsheet Height:", endsheetHeight);
                     console.log("Spine Size:", spineSegment);
                     console.log("Book Block Height:", bbHeightSegment);
-                    console.log("Trim Off Foot:", trimOffSegment);
+                    console.log("Trim Off Head (FIXED):", trimOffSegment);
                     console.log("Trim Height:", trimHeightSegment);
                     console.log("Trim Width:", trimWidthSegment);
                     console.log("Transfer Station:", transferStation);
                     
                     // Assemble the barcode string
-                    // Format: ISBN (13) | Endsheet Height (4) | Spine (3) | BB Height (4) | Trim Off (4) | Trim Height (4) | Trim Width (4) | Station (1)
+                    // Format: ISBN (13) | Endsheet Height (4) | Spine (3) | BB Height (4) | Trim Off Head (4) | Trim Height (4) | Trim Width (4) | Station (1)
                     const barcodeString = 
                         isbn +                // 13 digits
                         endsheetHeight +      // 4 digits
                         spineSegment +        // 3 digits
                         bbHeightSegment +     // 4 digits
-                        trimOffSegment +      // 4 digits
+                        trimOffSegment +      // 4 digits (FIXED VALUE)
                         trimHeightSegment +   // 4 digits
                         trimWidthSegment +    // 4 digits
                         transferStation;      // 1 digit
@@ -908,6 +922,10 @@
                     cutOff: null
                 };
                 
+                // Reset trim off toggle to default (0070)
+                trimOffToggle.checked = true;
+                updateTrimOffDisplay();
+                
                 // Reset hidden inputs to defaults
                 dimension.value = '256';
                 padding.value = '2';
@@ -1089,6 +1107,20 @@
             
             // Event Listeners
             
+            // Trim Off Head toggle
+            trimOffToggle.addEventListener('change', function() {
+                updateTrimOffDisplay();
+                // Regenerate barcode if Excel data is available
+                if (excelData && excelData.length > 0 && 
+                    Object.values(columnMapping).every(v => v !== null)) {
+                    const barcodeString = generateBarcodeString(excelData[0]);
+                    if (barcodeString) {
+                        generatedCode.value = barcodeString;
+                        updateDataMatrix();
+                    }
+                }
+            });
+            
             // Manual input events
             msg.addEventListener('input', function() {
                 validateInput(this.value);
@@ -1212,7 +1244,8 @@
                 }
             });
 
-            // Initial generation
+            // Initialize
+            updateTrimOffDisplay();
             msg.value = 'Enter the datamatrix details';
             digitCounter.textContent = '0/37 digits';
             updateDataMatrix();
