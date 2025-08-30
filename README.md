@@ -1,25 +1,21 @@
 # DataMatrix Generator
 
-A web-based application for generating DataMatrix barcodes from manual input or Excel data.
+A web-based application for generating DataMatrix barcodes from manual input, Excel data, or XML data, specifically designed for book production workflows.
 
 ## Overview
 
-The DataMatrix Generator is a browser-based tool that creates DataMatrix (2D) barcodes according to specific formatting rules. The application offers two methods of input:
-
-1. **Manual Input**: Enter a 37-digit code directly
-2. **Excel Upload**: Upload an Excel file with specific columns for automatic barcode generation
-
-The generated barcodes can be downloaded as PDF files for printing and practical use.
+The DataMatrix Generator is a browser-based tool that creates DataMatrix (2D) barcodes according to specific formatting rules for book manufacturing. The application offers three methods of input and features intelligent ISBN handling for both limp and cased book formats.
 
 ## Features
 
-- **Dual Input Methods**: Manual entry or Excel file upload
-- **Trim Off Head Toggle**: Switch between 0070 (default) and 0030 values for positions 25-28
-- **Intelligent Column Mapping**: Automatically maps Excel columns to required fields
-- **Manual Column Mapping**: Allows custom column mapping when automatic mapping fails
-- **Data Validation**: Ensures valid 37-digit barcode strings
-- **PDF Export**: Download generated barcodes as perfectly sized PDF files
-- **Drag & Drop**: Supports drag and drop for Excel file uploads
+- **File Upload as Primary Interface**: Excel and XML file processing is the default workflow
+- **Multi-Format Support**: Handles Excel (.xlsx, .xls) and XML (.xml) files seamlessly
+- **Intelligent ISBN Detection**: Automatically handles both Limp_ISBN and Cased_ISBN columns
+- **Dynamic Transfer Station Logic**: Sets position 37 based on book type (1 for Limp, 2 for Cased)
+- **Trim Off Head Toggle**: Switch between 7mm (0070) and 3mm (0030) values
+- **Smart Column Mapping**: Automatically maps data fields with manual override option
+- **Enhanced PDF Export**: Downloads with ISBN-based filenames and trim setting labels
+- **Drag & Drop Support**: Easy file uploads for both Excel and XML formats
 - **Responsive Design**: Works on desktop and mobile devices
 
 ## Installation
@@ -34,109 +30,187 @@ The generated barcodes can be downloaded as PDF files for printing and practical
 
 ## Usage
 
+### File Upload Mode (Primary)
+
+1. The File Upload tab is active by default when you open the application
+2. Upload a data file by either:
+   - Clicking the upload area to select a file
+   - Dragging and dropping a file onto the upload area
+3. **Supported file formats:**
+   - **Excel files**: `.xlsx`, `.xls`
+   - **XML files**: `.xml`
+4. The application will:
+   - Automatically detect `Limp_ISBN` and `Cased_ISBN` fields
+   - Map other required fields (Height, Width, Spine, Cut-Off)
+   - Generate a barcode from the data
+   - Display a preview of the mapped data
+5. If automatic mapping fails, use "Manual Column Mapping" to specify fields
+6. Download the barcode as a PDF with intelligent filename
+
 ### Manual Input Mode
 
-1. Enter a 37-digit code in the text area
-2. The input will be validated to ensure it meets the required format
-3. The DataMatrix barcode will be generated automatically
-4. Click "Download PDF" to save the barcode as a PDF file
-
-### Excel Upload Mode
-
-1. Click the "Excel Upload" tab
-2. Either:
-   - Click the upload area to select an Excel file
-   - Drag and drop an Excel file onto the upload area
-3. The application will:
-   - Automatically map columns from your Excel file
-   - Generate a barcode from the first row of data
-   - Display a preview of the generated barcode
-4. If the automatic mapping fails, click "Manual Column Mapping" to manually select which columns contain the required information
-5. Click "Download PDF" to save the barcode as a PDF file
+1. Switch to the "Manual Input" tab
+2. Enter a 37-digit code in the text area
+3. The input will be validated in real-time
+4. The DataMatrix barcode generates automatically
+5. Download as PDF when ready
 
 ### Trim Off Head Setting
 
-The application includes a toggle switch to control the Trim Off Head value (positions 25-28):
+Toggle switch controls the Trim Off Head value (positions 25-28):
 
-- **ON (Default)**: Uses value 0070
-- **OFF (Alternative)**: Uses value 0030
+- **ON (Default)**: Uses 7mm setting (0070)
+- **OFF**: Uses 3mm setting (0030)
 
-This setting can be changed at any time and will automatically regenerate the barcode if Excel data is loaded.
+The setting automatically regenerates barcodes when file data is loaded.
 
 ## Barcode Format
 
 The application generates a 37-digit barcode string in the following format:
 
-| Position | Length | Description            | Format                                                 |
-|----------|--------|------------------------|--------------------------------------------------------|
-| 1-13     | 13     | ISBN                   | Directly from data                                     |
+| Position | Length | Description            | Format/Rules                                           |
+|----------|--------|------------------------|-------------------------------------------------------|
+| 1-13     | 13     | ISBN                   | From Limp_ISBN or Cased_ISBN field                    |
 | 14-17    | 4      | Endsheet Height        | Fixed as "0000"                                        |
-| 18-20    | 3      | Spine Size             | 2 digits + trailing zero (e.g., 25 → "250")            |
-| 21-24    | 4      | Book Block Height      | 3 digits + trailing zero (e.g., 221 → "2210")          |
-| 25-28    | 4      | Trim Off Head          | **Fixed value: 0070 or 0030 (toggle controlled)**      |
-| 29-32    | 4      | Trim Height            | 3 digits + trailing zero (e.g., 210 → "2100")          |
-| 33-36    | 4      | Trim Width             | 3 digits + trailing zero (e.g., 148 → "1480")          |
-| 37       | 1      | Transfer Station       | Fixed as "1"                                           |
+| 18-20    | 3      | Spine Size             | 2 digits + trailing zero OR leading + trailing zero   |
+| 21-24    | 4      | Book Block Height      | 3 digits from Cut-Off + trailing zero                 |
+| 25-28    | 4      | Trim Off Head          | **7mm = 0070 OR 3mm = 0030 (toggle controlled)**      |
+| 29-32    | 4      | Trim Height            | 3 digits from Height + trailing zero                  |
+| 33-36    | 4      | Trim Width             | 3 digits from Width + trailing zero                   |
+| 37       | 1      | Transfer Station       | **1 = Limp_ISBN used, 2 = Cased_ISBN used**           |
 
-### Calculation Rules:
+### Key Formatting Rules:
 
-- **Spine Size**:
-  - For 2-digit values: Add trailing zero (e.g., 25 → "250")
-  - For 1-digit values: Add leading and trailing zero (e.g., 7 → "070")
+- **ISBN Selection Priority**: Limp_ISBN checked first, then Cased_ISBN if empty
+- **Transfer Station Logic**: 
+  - `1` if data comes from Limp_ISBN field
+  - `2` if data comes from Cased_ISBN field
+- **Spine Formatting**:
+  - 2-digit values: Add trailing zero (e.g., 24 → "240")
+  - 1-digit values: Add leading and trailing zero (e.g., 8 → "080")
+- **Trim Off Head**: Fixed toggle-controlled value (no longer calculated)
 
-- **Trim Off Head** (Updated):
-  - **Fixed value controlled by toggle switch**
-  - Toggle ON: Uses "0070" (default)
-  - Toggle OFF: Uses "0030" (alternative)
-  - No longer calculated from other values
+## File Format Requirements
 
-## Excel File Requirements
+### Excel Files (.xlsx, .xls)
+The application looks for these columns in your Excel file:
 
-The application looks for the following columns in your Excel file:
+#### Required Columns:
+- **Limp_ISBN** OR **Cased_ISBN**: 13-digit ISBN (determines Transfer Station)
+- **Trim_Height**: Height dimension in mm
+- **Trim_Width**: Width dimension in mm  
+- **Spine_Size**: Spine thickness in mm
+- **Cut_Off**: Book block height before trimming in mm
 
-- **ISBN**: The ISBN or product identification number (13 digits)
-- **Height**: The trim height dimension in mm
-- **Width**: The trim width dimension in mm
-- **Spine**: The spine thickness in mm
-- **Cut-Off**: The book block height before trimming in mm
+#### Column Name Variations:
+The application recognizes common naming variations:
+- Height: `Trim_Height`, `Product_Height`, `Height_MM`
+- Width: `Trim_Width`, `Product_Width`, `Width_MM`
+- Spine: `Spine_Size`, `Spine_Width`, `Thickness`
+- Cut-Off: `Cut_Off`, `Cutoff`, `Bleed`, `Margin`
 
-The application will attempt to automatically identify these columns, even if they have different names. Common variations are supported (e.g., "Trim_Height" instead of "Height").
+### XML Files (.xml)
+The application expects XML structure with elements containing the required data:
+
+#### Expected XML Structure:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<csv>
+  <Wi_Number>324623</Wi_Number>
+  <Limp_ISBN>9781739665333</Limp_ISBN>
+  <Cased_ISBN></Cased_ISBN>
+  <Trim_Height>198</Trim_Height>
+  <Trim_Width>129</Trim_Width>
+  <Spine_Size>24</Spine_Size>
+  <Cut_Off>209</Cut_Off>
+  <!-- Additional fields as needed -->
+</csv>
+```
+
+#### Required XML Elements:
+- **Limp_ISBN** OR **Cased_ISBN**: 13-digit ISBN
+- **Trim_Height**: Height dimension in mm
+- **Trim_Width**: Width dimension in mm
+- **Spine_Size**: Spine thickness in mm
+- **Cut_Off**: Book block height before trimming in mm
+
+## PDF Export Features
+
+### Enhanced Filename Format:
+- **Pattern**: `[13-digit-ISBN]*[trim-setting].pdf`
+- **Examples**: 
+  - `9781739665333*7mm.pdf` (0070 setting)
+  - `9781234567890*3mm.pdf` (0030 setting)
+
+### PDF Contents:
+- **DataMatrix barcode** optimally sized for printing
+- **Trim setting label** below barcode (8pt font)
+- **Professional layout** with proper margins
 
 ## Debug Features
 
-- **Debug Panel**: Press `Ctrl+Shift+D` to toggle the debug panel
-- **Test Barcode Generation**: Use the debug panel to test barcode generation with sample data
-- **Column Mapping Display**: View current Excel column mappings
-- **Console Logging**: Detailed generation process logging in browser console
+- **Debug Panel**: Press `Ctrl+Shift+D` to toggle advanced debugging
+- **Column/Field Mapping Display**: View current data field mappings
+- **Test Generation**: Test barcode generation with sample data
+- **Console Logging**: Detailed process logging in browser console
 
 ## Troubleshooting
 
-- **Excel Column Mapping Fails**: Use the "Manual Column Mapping" button to manually select which columns contain the required information.
-- **PDF Download Not Working**: Ensure you have a valid 37-digit code generated before attempting to download.
-- **Barcode Not Generating**: Check the console for detailed error messages (press F12 in most browsers).
-- **Toggle Not Working**: The Trim Off Head toggle only affects Excel-generated codes. For manual input, enter the complete 37-digit string.
-- **Browser Compatibility**: The application is built using modern web standards and should work in all current browsers. Internet Explorer is not supported.
+### File Upload Issues:
+- **Column/Field Mapping Fails**: Use "Manual Column Mapping" button
+- **No ISBN Found**: Ensure either Limp_ISBN or Cased_ISBN fields contain data
+- **Preview Shows Wrong Field**: Check that the correct ISBN field has data
+- **XML Parse Error**: Verify XML is well-formed and follows expected structure
+- **Unsupported Format**: Ensure file is .xlsx, .xls, or .xml
+
+### Barcode Generation:
+- **Invalid Length**: Ensure all required fields are mapped correctly
+- **Transfer Station Wrong**: Verify which ISBN field contains data
+- **Toggle Not Working**: Only affects file-generated codes, not manual input
+
+### PDF Download:
+- **Download Fails**: Ensure a valid 37-digit code is generated first
+- **Wrong Filename**: Check that ISBN is properly extracted from barcode
+- **Missing Label**: Verify trim setting toggle is working
 
 ## Recent Updates
 
-### Version 2.0
-- **Changed Calculation Logic**: Trim Off Head (positions 25-28) is now a fixed value instead of calculated
-- **Added Toggle Control**: Switch between 0070 and 0030 values for Trim Off Head
-- **Updated Labels**: Changed "Trim Off Foot" to "Trim Off Head" throughout the application
-- **Real-time Updates**: Toggle changes automatically regenerate barcodes when Excel data is loaded
+### Version 4.0
+- **XML File Support**: Added XML file import alongside Excel support
+- **Unified File Interface**: Single upload interface for both Excel and XML files
+- **Enhanced File Detection**: Automatic format detection and appropriate parsing
+- **Improved Error Handling**: Better feedback for file format issues
+- **Updated UI Labels**: Changed from "Excel Upload" to "File Upload"
 
-## Dependencies
-
-The application uses the following external libraries:
-
-- **DataMatrix.js**: For generating DataMatrix barcodes
-- **SheetJS**: For parsing Excel files (`xlsx.full.min.js`)
-- **jsPDF**: For PDF generation (`jspdf.umd.min.js`)
-- **Bootstrap**: For UI components and responsive design (`bootstrap.bundle.min.js`)
+### Previous Updates (Version 3.0)
+- **File Upload Primary**: Made file upload the default workflow
+- **Enhanced ISBN Logic**: Added Limp_ISBN/Cased_ISBN detection with Transfer Station logic
+- **Improved PDF Export**: Added trim setting labels and ISBN-based filenames
+- **Better Preview**: Dynamic field header display based on actual data
+- **Enhanced UX**: Improved error handling and user feedback
 
 ## Browser Requirements
 
 - Modern web browser with JavaScript enabled
-- HTML5 File API support (for Excel uploads)
+- HTML5 File API support (for file uploads)
 - Canvas API support (for PDF generation)
+- XML DOM Parser support (for XML file processing)
 - No server-side requirements - runs entirely in the browser
+
+## Dependencies
+
+The application uses these external libraries (loaded from CDN):
+
+- **DataMatrix.js**: Custom implementation for DataMatrix barcode generation
+- **SheetJS (XLSX)**: Excel file parsing (`xlsx.full.min.js`)
+- **jsPDF**: PDF generation (`jspdf.umd.min.js`)
+- **Bootstrap 5**: UI components and responsive design (`bootstrap.bundle.min.js`)
+
+## Technical Notes
+
+- **Client-side Processing**: All file parsing and barcode generation happens in the browser
+- **Multi-format Support**: Handles both Excel and XML files with unified processing logic
+- **No Data Storage**: No user data is stored or transmitted to external servers
+- **Cross-platform**: Works on Windows, macOS, Linux, iOS, and Android browsers
+- **Performance**: Handles files with complex data structures efficiently
+- **XML Processing**: Uses native browser DOM parser for reliable XML handling

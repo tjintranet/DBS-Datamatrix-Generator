@@ -212,37 +212,25 @@
 
                             <ul class="nav nav-tabs" id="inputTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="true">Manual Input</button>
+                                    <button class="nav-link active" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel" type="button" role="tab" aria-controls="excel" aria-selected="true">File Upload</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel" type="button" role="tab" aria-controls="excel" aria-selected="false">Excel Upload</button>
+                                    <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="false">Manual Input</button>
                                 </li>
                             </ul>
                             
                             <div class="tab-content" id="inputTabsContent">
-                                <!-- Manual Input Tab -->
-                                <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
-                                    <div class="mb-3">
-                                        <label for="msg" class="form-label">Enter Details</label>
-                                        <textarea id="msg" class="form-control" rows="3" placeholder="Enter the datamatrix details"></textarea>
-                                        <div class="invalid-feedback">
-                                            Input must be exactly 37 digits (0-9).
-                                        </div>
-                                        <div class="char-counter" id="digitCounter">0/37 digits</div>
-                                    </div>
-                                </div>
-                                
                                 <!-- Excel Upload Tab -->
-                                <div class="tab-pane fade" id="excel" role="tabpanel" aria-labelledby="excel-tab">
+                                <div class="tab-pane fade show active" id="excel" role="tabpanel" aria-labelledby="excel-tab">
                                     <div class="mb-3">
-                                        <label class="form-label">Upload Excel File</label>
+                                        <label class="form-label">Upload Excel or XML File</label>
                                         <div class="file-upload-card" id="fileUploadCard">
-                                            <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#6c757d" class="bi bi-file-earmark-excel mb-2" viewBox="0 0 16 16">
-                                                <path d="M5.884 6.68a.5.5 0 1 0-.768.64L7.349 10l-2.233 2.68a.5.5 0 0 0 .768.64L8 10.781l2.116 2.54a.5.5 0 0 0 .768-.641L8.651 10l2.233-2.68a.5.5 0 0 0-.768-.64L8 9.219l-2.116-2.54z"/>
-                                                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                                            <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls, .xml">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#6c757d" class="bi bi-file-earmark-text mb-2" viewBox="0 0 16 16">
+                                                <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zM5.5 9a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 2a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z"/>
+                                                <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5L9.5 0zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
                                             </svg>
-                                            <p class="mb-0">Click to upload Excel file or drag and drop</p>
+                                            <p class="mb-0">Click to upload Excel (.xlsx, .xls) or XML file</p>
                                             <p class="small text-muted mb-0">Must contain ISBN, Trim Height, Trim Width, Spine Size, and Cut Off data</p>
                                         </div>
                                     </div>
@@ -276,6 +264,18 @@
                                     <button class="btn btn-outline-secondary w-100" id="manualMapBtn">
                                         Manual Column Mapping
                                     </button>
+                                </div>
+                                
+                                <!-- Manual Input Tab -->
+                                <div class="tab-pane fade" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+                                    <div class="mb-3">
+                                        <label for="msg" class="form-label">Enter Details</label>
+                                        <textarea id="msg" class="form-control" rows="3" placeholder="Enter the datamatrix details"></textarea>
+                                        <div class="invalid-feedback">
+                                            Input must be exactly 37 digits (0-9).
+                                        </div>
+                                        <div class="char-counter" id="digitCounter">0/37 digits</div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -428,6 +428,8 @@
             let availableHeaders = [];
             let columnMapping = {
                 isbn: null,
+                limpIsbn: null,
+                casedIsbn: null,
                 height: null,
                 width: null,
                 spine: null,
@@ -485,8 +487,34 @@
                     console.log("Generating barcode from row:", row);
                     console.log("Using column mapping:", columnMapping);
                     
-                    // Extract values using the mapping
-                    let isbn = row[columnMapping.isbn];
+                    // NEW ISBN LOGIC: Check both Limp_ISBN and Cased_ISBN columns
+                    let isbn = '';
+                    let transferStation = '1'; // Default value
+                    
+                    // Check if we have Limp_ISBN and Cased_ISBN columns mapped
+                    const limpIsbnValue = columnMapping.limpIsbn ? row[columnMapping.limpIsbn] : '';
+                    const casedIsbnValue = columnMapping.casedIsbn ? row[columnMapping.casedIsbn] : '';
+                    
+                    console.log("Limp_ISBN value:", limpIsbnValue);
+                    console.log("Cased_ISBN value:", casedIsbnValue);
+                    
+                    // Determine which ISBN to use and set Transfer Station accordingly
+                    if (limpIsbnValue && limpIsbnValue.trim() !== '') {
+                        isbn = limpIsbnValue;
+                        transferStation = '1';
+                        console.log("Using Limp_ISBN, Transfer Station = 1");
+                    } else if (casedIsbnValue && casedIsbnValue.trim() !== '') {
+                        isbn = casedIsbnValue;
+                        transferStation = '2';
+                        console.log("Using Cased_ISBN, Transfer Station = 2");
+                    } else if (columnMapping.isbn && row[columnMapping.isbn]) {
+                        // Fallback to generic ISBN column if available
+                        isbn = row[columnMapping.isbn];
+                        transferStation = '1'; // Default
+                        console.log("Using generic ISBN column, Transfer Station = 1");
+                    }
+                    
+                    // Extract other values using the mapping
                     let height = row[columnMapping.height];
                     let width = row[columnMapping.width];
                     let spine = row[columnMapping.spine];
@@ -494,15 +522,16 @@
                     
                     // Log raw values
                     console.log("Raw values:");
-                    console.log("ISBN:", isbn, typeof isbn);
+                    console.log("Final ISBN:", isbn, typeof isbn);
                     console.log("Height:", height, typeof height);
                     console.log("Width:", width, typeof width);
                     console.log("Spine:", spine, typeof spine);
                     console.log("Cut-Off:", cutOff, typeof cutOff);
+                    console.log("Transfer Station:", transferStation);
                     
                     // Process ISBN
                     if (isbn === undefined || isbn === null || isbn === '') {
-                        console.error("ISBN is missing");
+                        console.error("No ISBN found in either Limp_ISBN or Cased_ISBN columns");
                         return null;
                     }
                     
@@ -570,8 +599,7 @@
                     // 7. Trim Width = 3 digits plus trailing zero
                     const trimWidthSegment = padWithZeros(Math.round(width), 3) + "0";
                     
-                    // 8. Transfer Station = 1
-                    const transferStation = "1";
+                    // 8. Transfer Station = 1 for Limp_ISBN, 2 for Cased_ISBN (NEW LOGIC)
                     
                     // Debug output for all formatted values
                     console.log("Formatted values:");
@@ -594,7 +622,7 @@
                         trimOffSegment +      // 4 digits (FIXED VALUE)
                         trimHeightSegment +   // 4 digits
                         trimWidthSegment +    // 4 digits
-                        transferStation;      // 1 digit
+                        transferStation;      // 1 digit (NOW DYNAMIC: 1 for Limp, 2 for Cased)
                     
                     console.log("Generated barcode string:", barcodeString);
                     console.log("Length:", barcodeString.length);
@@ -641,7 +669,16 @@
                 
                 // Special cases for common variations
                 if (targetLower === 'isbn') {
-                    const isbnVariations = ["limp_isbn", "isbn13", "ean", "barcode", "isbn_13", "product_id", "id", "code"];
+                    // Look for Limp_ISBN and Cased_ISBN columns specifically
+                    const limpIsbn = headers.find(h => h.toLowerCase().includes('limp_isbn'));
+                    const casedIsbn = headers.find(h => h.toLowerCase().includes('cased_isbn'));
+                    
+                    // Return both if found, preference for Limp_ISBN
+                    if (limpIsbn) return limpIsbn;
+                    if (casedIsbn) return casedIsbn;
+                    
+                    // Fallback to other ISBN variations
+                    const isbnVariations = ["isbn13", "ean", "barcode", "isbn_13", "product_id", "id", "code"];
                     for (const variation of isbnVariations) {
                         const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
                         if (match) return match;
@@ -658,7 +695,7 @@
                 
                 if (targetLower === 'width') {
                     const widthVariations = ["trim_width", "product_width", "width_mm", "w", "book_width", "finished_width"];
-                    for (const variation of heightVariations) {
+                    for (const variation of widthVariations) {
                         const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
                         if (match) return match;
                     }
@@ -688,11 +725,23 @@
             function updateExcelPreview() {
                 if (!excelData || excelData.length === 0) return;
                 
+                // Determine which ISBN column is being used for the header display
+                let isbnHeaderName = 'ISBN';
+                const firstRow = excelData[0];
+                
+                if (columnMapping.limpIsbn && firstRow[columnMapping.limpIsbn] && firstRow[columnMapping.limpIsbn].trim() !== '') {
+                    isbnHeaderName = columnMapping.limpIsbn;
+                } else if (columnMapping.casedIsbn && firstRow[columnMapping.casedIsbn] && firstRow[columnMapping.casedIsbn].trim() !== '') {
+                    isbnHeaderName = columnMapping.casedIsbn;
+                } else if (columnMapping.isbn && firstRow[columnMapping.isbn]) {
+                    isbnHeaderName = columnMapping.isbn;
+                }
+                
                 // Update table header with column names
                 const thead = document.getElementById('excelTableHead');
                 thead.innerHTML = `
                     <tr>
-                        <th>${columnMapping.isbn || 'ISBN'}</th>
+                        <th>${isbnHeaderName}</th>
                         <th>${columnMapping.height || 'Height'}</th>
                         <th>${columnMapping.width || 'Width'}</th>
                         <th>${columnMapping.spine || 'Spine'}</th>
@@ -706,9 +755,19 @@
                 
                 for (let i = 0; i < maxRows; i++) {
                     const row = excelData[i];
+                    // Show the ISBN that will actually be used
+                    let displayIsbn = '';
+                    if (columnMapping.limpIsbn && row[columnMapping.limpIsbn]) {
+                        displayIsbn = row[columnMapping.limpIsbn];
+                    } else if (columnMapping.casedIsbn && row[columnMapping.casedIsbn]) {
+                        displayIsbn = row[columnMapping.casedIsbn];
+                    } else if (columnMapping.isbn && row[columnMapping.isbn]) {
+                        displayIsbn = row[columnMapping.isbn];
+                    }
+                    
                     tableHtml += `
                         <tr>
-                            <td>${row[columnMapping.isbn] || ''}</td>
+                            <td>${displayIsbn || ''}</td>
                             <td>${row[columnMapping.height] || ''}</td>
                             <td>${row[columnMapping.width] || ''}</td>
                             <td>${row[columnMapping.spine] || ''}</td>
@@ -720,39 +779,94 @@
                 excelTableBody.innerHTML = tableHtml;
             }
             
-            // Function to process and display Excel data
-            function processExcelFile(file) {
+            // Function to parse XML file and convert to JSON format
+            function parseXMLFile(xmlContent) {
+                try {
+                    // Create a DOM parser
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+                    
+                    // Check for parsing errors
+                    const parserError = xmlDoc.getElementsByTagName("parsererror");
+                    if (parserError.length > 0) {
+                        throw new Error("XML parsing error: " + parserError[0].textContent);
+                    }
+                    
+                    // Find the root element (assuming it's 'csv' based on the example)
+                    const rootElement = xmlDoc.documentElement;
+                    
+                    // Convert XML elements to JSON object
+                    const jsonObject = {};
+                    
+                    // Get all child elements
+                    const children = rootElement.children;
+                    for (let i = 0; i < children.length; i++) {
+                        const element = children[i];
+                        const tagName = element.tagName;
+                        const textContent = element.textContent.trim();
+                        
+                        // Store the value (empty string if no content)
+                        jsonObject[tagName] = textContent || '';
+                    }
+                    
+                    console.log("Parsed XML to JSON:", jsonObject);
+                    
+                    // Return as array with single object (to match Excel format)
+                    return [jsonObject];
+                    
+                } catch (error) {
+                    console.error("Error parsing XML:", error);
+                    throw error;
+                }
+            }
+            
+            // Function to process and display data from file (Excel or XML)
+            function processDataFile(file) {
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
                     try {
-                        const data = e.target.result;
-                        console.log("Reading Excel file:", file.name);
+                        const fileName = file.name.toLowerCase();
+                        let jsonData = [];
                         
-                        // Parse Excel file
-                        const workbook = XLSX.read(data, {
-                            type: 'array',
-                            cellDates: true,
-                            cellNF: true,
-                            raw: false
-                        });
+                        console.log("Processing file:", file.name);
                         
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        
-                        // Convert to JSON
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-                            raw: false,
-                            dateNF: 'yyyy-mm-dd',
-                            defval: ''
-                        });
+                        if (fileName.endsWith('.xml')) {
+                            // Handle XML file
+                            const xmlContent = e.target.result;
+                            jsonData = parseXMLFile(xmlContent);
+                            
+                        } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                            // Handle Excel file
+                            const data = e.target.result;
+                            
+                            // Parse Excel file
+                            const workbook = XLSX.read(data, {
+                                type: 'array',
+                                cellDates: true,
+                                cellNF: true,
+                                raw: false
+                            });
+                            
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            
+                            // Convert to JSON
+                            jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                                raw: false,
+                                dateNF: 'yyyy-mm-dd',
+                                defval: ''
+                            });
+                        } else {
+                            throw new Error("Unsupported file format. Please use Excel (.xlsx, .xls) or XML files.");
+                        }
                         
                         if (jsonData.length === 0) {
-                            alert('No data found in the Excel file.');
+                            alert('No data found in the file.');
                             return;
                         }
                         
-                        console.log("Excel data:", jsonData.slice(0, 2));
+                        console.log("Processed data:", jsonData.slice(0, 2));
                         
                         // Store data for later use
                         excelData = jsonData;
@@ -764,6 +878,8 @@
                         // Try to map columns automatically
                         columnMapping = {
                             isbn: findBestColumnMatch(availableHeaders, 'isbn'),
+                            limpIsbn: availableHeaders.find(h => h.toLowerCase().includes('limp_isbn')),
+                            casedIsbn: availableHeaders.find(h => h.toLowerCase().includes('cased_isbn')),
                             height: findBestColumnMatch(availableHeaders, 'height'),
                             width: findBestColumnMatch(availableHeaders, 'width'),
                             spine: findBestColumnMatch(availableHeaders, 'spine'),
@@ -772,10 +888,14 @@
                         
                         console.log("Automatic column mapping:", columnMapping);
                         
-                        // Check if all required columns were found
-                        const missingColumns = Object.entries(columnMapping)
-                            .filter(([_, value]) => value === null)
-                            .map(([key, _]) => key);
+                        // Check if all required columns were found (excluding isbn since we use limp/cased)
+                        const requiredMappings = ['height', 'width', 'spine', 'cutOff'];
+                        const missingColumns = requiredMappings.filter(key => columnMapping[key] === null);
+                        
+                        // Also check if we have at least one ISBN column
+                        if (!columnMapping.limpIsbn && !columnMapping.casedIsbn && !columnMapping.isbn) {
+                            missingColumns.push('isbn (neither Limp_ISBN nor Cased_ISBN found)');
+                        }
                         
                         // If any columns are missing, open the manual mapping modal
                         if (missingColumns.length > 0) {
@@ -798,23 +918,28 @@
                             generatedCode.value = '';
                             generatedCode.classList.add('is-invalid');
                             console.error("Failed to generate barcode");
-                            alert("Could not generate a valid barcode from the Excel data. Please check the console for details or try manual column mapping.");
+                            alert("Could not generate a valid barcode from the file data. Please check the console for details or try manual column mapping.");
                         }
                         
                         // Update debug panel if visible
                         updateDebugPanel();
                         
                     } catch (error) {
-                        console.error('Error processing Excel file:', error);
-                        alert('Error processing Excel file: ' + error.message);
+                        console.error('Error processing file:', error);
+                        alert('Error processing file: ' + error.message);
                     }
                 };
                 
                 reader.onerror = function() {
-                    alert('Error reading the Excel file.');
+                    alert('Error reading the file.');
                 };
                 
-                reader.readAsArrayBuffer(file);
+                // Read file differently based on type
+                if (file.name.toLowerCase().endsWith('.xml')) {
+                    reader.readAsText(file, 'UTF-8');
+                } else {
+                    reader.readAsArrayBuffer(file);
+                }
             }
             
             // Function to show mapping modal with available columns
@@ -839,7 +964,13 @@
                     
                     // Set current value if available
                     const field = selectId.replace('Column', '');
-                    const mappedValue = columnMapping[field];
+                    let mappedValue = columnMapping[field];
+                    
+                    // Special handling for ISBN - use whichever is available
+                    if (field === 'isbn') {
+                        mappedValue = columnMapping.limpIsbn || columnMapping.casedIsbn || columnMapping.isbn;
+                    }
+                    
                     if (mappedValue) {
                         select.value = mappedValue;
                     }
@@ -851,8 +982,12 @@
             
             // Apply the manual column mapping
             function applyManualMapping() {
+                const selectedIsbnColumn = document.getElementById('isbnColumn').value;
+                
                 columnMapping = {
-                    isbn: document.getElementById('isbnColumn').value,
+                    isbn: selectedIsbnColumn,
+                    limpIsbn: selectedIsbnColumn.toLowerCase().includes('limp_isbn') ? selectedIsbnColumn : null,
+                    casedIsbn: selectedIsbnColumn.toLowerCase().includes('cased_isbn') ? selectedIsbnColumn : null,
                     height: document.getElementById('heightColumn').value,
                     width: document.getElementById('widthColumn').value,
                     spine: document.getElementById('spineColumn').value,
@@ -863,7 +998,7 @@
                 
                 // Check if all fields are selected
                 const missingFields = Object.entries(columnMapping)
-                    .filter(([_, value]) => !value)
+                    .filter(([key, value]) => key !== 'limpIsbn' && key !== 'casedIsbn' && !value)
                     .map(([key, _]) => key);
                 
                 if (missingFields.length > 0) {
@@ -916,6 +1051,8 @@
                 // Reset column mapping
                 columnMapping = {
                     isbn: null,
+                    limpIsbn: null,
+                    casedIsbn: null,
                     height: null,
                     width: null,
                     spine: null,
@@ -1040,17 +1177,18 @@
                     const img = new Image();
                     img.onload = function() {
                         // Define barcode dimensions and margins
-                        const widthScaleFactor = 1.10;  // Perfect for width
-                        const heightScaleFactor = 1.27; // Increased for height
-                        const barcodeWidth = 17 * widthScaleFactor;   // Compensated width
-                        const barcodeHeight = 6 * heightScaleFactor;  // Compensated height
+                        const widthScaleFactor = 1.10;
+                        const heightScaleFactor = 1.27;
+                        const barcodeWidth = 17 * widthScaleFactor;
+                        const barcodeHeight = 6 * heightScaleFactor;
                         const margin = 10; // 10mm margin
+                        const labelHeight = 5; // Additional height for label
                         
-                        // Calculate page dimensions
+                        // Calculate page dimensions (including space for label)
                         const pageWidth = barcodeWidth + (margin * 2);
-                        const pageHeight = barcodeHeight + (margin * 2);
+                        const pageHeight = barcodeHeight + labelHeight + (margin * 2);
                         
-                        // Create PDF with custom size (barcode + margins)
+                        // Create PDF with custom size
                         const pdf = new jsPDF({
                             orientation: pageWidth > pageHeight ? 'landscape' : 'portrait',
                             unit: 'mm',
@@ -1064,11 +1202,11 @@
                         // Draw SVG
                         ctx.drawImage(img, 0, 0);
                         
-                        // Calculate centering
+                        // Calculate centering for barcode (leaving space for label below)
                         const xOffset = (pdf.internal.pageSize.getWidth() - barcodeWidth) / 2;
-                        const yOffset = (pdf.internal.pageSize.getHeight() - barcodeHeight) / 2;
+                        const yOffset = margin; // Position barcode at top margin
                         
-                        // Add the image to PDF centered
+                        // Add the barcode image to PDF
                         pdf.addImage(
                             canvas.toDataURL('image/png'),
                             'PNG',
@@ -1078,8 +1216,35 @@
                             barcodeHeight
                         );
                         
+                        // Determine the trim off head setting and label
+                        const trimOffValue = getTrimOffHeadValue();
+                        const trimOffLabel = trimOffValue === "0070" ? "Trim Off Head: 7mm" : "Trim Off Head: 3mm";
+                        const trimSuffix = trimOffValue === "0070" ? "*7mm" : "*3mm";
+                        
+                        // Add label text below the barcode
+                        pdf.setFontSize(8);
+                        pdf.setTextColor(0, 0, 0); // Black text
+                        
+                        // Calculate text position (centered horizontally, below barcode)
+                        const textWidth = pdf.getTextWidth(trimOffLabel);
+                        const textX = (pdf.internal.pageSize.getWidth() - textWidth) / 2;
+                        const textY = yOffset + barcodeHeight + 3; // 3mm below barcode
+                        
+                        pdf.text(trimOffLabel, textX, textY);
+                        
+                        // Extract ISBN from the barcode string for filename
+                        let filenameISBN = '';
+                        if (inputText && inputText.length >= 13) {
+                            filenameISBN = inputText.substring(0, 13);
+                        } else {
+                            filenameISBN = 'datamatrix';
+                        }
+                        
+                        // Create filename: ISBN + trim setting
+                        const filename = `${filenameISBN}${trimSuffix}.pdf`;
+                        
                         // Download the PDF
-                        pdf.save(`datamatrix-${new Date().toISOString().slice(0, 19).replace(/[:]/g, '')}.pdf`);
+                        pdf.save(filename);
                     };
                     
                     img.onerror = function() {
@@ -1112,7 +1277,7 @@
                 updateTrimOffDisplay();
                 // Regenerate barcode if Excel data is available
                 if (excelData && excelData.length > 0 && 
-                    Object.values(columnMapping).every(v => v !== null)) {
+                    Object.values(columnMapping).some(v => v !== null)) {
                     const barcodeString = generateBarcodeString(excelData[0]);
                     if (barcodeString) {
                         generatedCode.value = barcodeString;
@@ -1134,11 +1299,11 @@
             
             excelFile.addEventListener('change', function() {
                 if (this.files.length > 0) {
-                    processExcelFile(this.files[0]);
+                    processDataFile(this.files[0]);
                 }
             });
             
-            // Drag and drop for Excel files
+            // Drag and drop for Excel/XML files
             fileUploadCard.addEventListener('dragover', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1158,10 +1323,12 @@
                 
                 if (e.dataTransfer.files.length > 0) {
                     const file = e.dataTransfer.files[0];
-                    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-                        processExcelFile(file);
+                    const fileName = file.name.toLowerCase();
+                    
+                    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.xml')) {
+                        processDataFile(file);
                     } else {
-                        alert('Please upload an Excel file (.xlsx or .xls)');
+                        alert('Please upload an Excel file (.xlsx, .xls) or XML file (.xml)');
                     }
                 }
             });
@@ -1197,6 +1364,8 @@
                 
                 const testMapping = {
                     isbn: 'Test_ISBN',
+                    limpIsbn: 'Test_ISBN',
+                    casedIsbn: null,
                     height: 'Test_Height',
                     width: 'Test_Width',
                     spine: 'Test_Spine',
