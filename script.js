@@ -629,9 +629,10 @@ Job_name=${isbn}_c`;
         }
         
         if (targetLower === 'cutoff') {
-            const cutOffVariations = ["cut_off", "cutoff", "bleed", "trim", "margin", "cut"];
+            // Be more strict with Cut-Off matching to avoid matching trim_height
+            const cutOffVariations = ["cut_off", "cutoff", "cut-off"];
             for (const variation of cutOffVariations) {
-                const match = headers.find(h => h.toLowerCase().includes(variation.toLowerCase()));
+                const match = headers.find(h => h.toLowerCase() === variation || h.toLowerCase().endsWith('.' + variation) || h.toLowerCase().endsWith('_' + variation));
                 if (match) return match;
             }
         }
@@ -640,68 +641,64 @@ Job_name=${isbn}_c`;
     }
     
     // Update the preview table with Excel data
-    function updateExcelPreview() {
-        if (!excelData || excelData.length === 0) return;
+function updateExcelPreview() {
+    if (!excelData || excelData.length === 0) return;
+    
+    // Check if Cut_Off will be calculated
+    const cutOffLabel = columnMapping.cutOff ? 'Cut Off' : 'Cut Off (Calc)';
+    
+    // Update table header with friendly names instead of column names
+    const thead = document.getElementById('excelTableHead');
+    thead.innerHTML = `
+        <tr>
+            <th>ISBN</th>
+            <th>Trim Height</th>
+            <th>Trim Width</th>
+            <th>Spine</th>
+            <th>${cutOffLabel}</th>
+        </tr>
+    `;
+    
+    // Display first few rows
+    let tableHtml = '';
+    const maxRows = Math.min(excelData.length, 5);
+    
+    for (let i = 0; i < maxRows; i++) {
+        const row = excelData[i];
         
-        let isbnHeaderName = 'ISBN';
-        const firstRow = excelData[0];
-        
-        if (columnMapping.limpIsbn && firstRow[columnMapping.limpIsbn] && firstRow[columnMapping.limpIsbn].trim() !== '') {
-            isbnHeaderName = columnMapping.limpIsbn;
-        } else if (columnMapping.casedIsbn && firstRow[columnMapping.casedIsbn] && firstRow[columnMapping.casedIsbn].trim() !== '') {
-            isbnHeaderName = columnMapping.casedIsbn;
-        } else if (columnMapping.isbn && firstRow[columnMapping.isbn]) {
-            isbnHeaderName = columnMapping.isbn;
+        // Get ISBN value from whichever column is mapped
+        let displayIsbn = '';
+        if (columnMapping.limpIsbn && row[columnMapping.limpIsbn]) {
+            displayIsbn = row[columnMapping.limpIsbn];
+        } else if (columnMapping.casedIsbn && row[columnMapping.casedIsbn]) {
+            displayIsbn = row[columnMapping.casedIsbn];
+        } else if (columnMapping.isbn && row[columnMapping.isbn]) {
+            displayIsbn = row[columnMapping.isbn];
         }
         
-        const cutOffLabel = columnMapping.cutOff ? columnMapping.cutOff : 'Cut Off (Calc)';
+        // Show Cut_Off value or calculated value
+        let displayCutOff = '';
+        if (columnMapping.cutOff && row[columnMapping.cutOff]) {
+            displayCutOff = row[columnMapping.cutOff];
+        } else {
+            // Calculate and show
+            const height = row[columnMapping.height];
+            displayCutOff = calculateCutOff(height) || 'N/A';
+        }
         
-        const thead = document.getElementById('excelTableHead');
-        thead.innerHTML = `
+        tableHtml += `
             <tr>
-                <th>${isbnHeaderName}</th>
-                <th>${columnMapping.height || 'Height'}</th>
-                <th>${columnMapping.width || 'Width'}</th>
-                <th>${columnMapping.spine || 'Spine'}</th>
-                <th>${cutOffLabel}</th>
+                <td>${displayIsbn || ''}</td>
+                <td>${row[columnMapping.height] || ''}</td>
+                <td>${row[columnMapping.width] || ''}</td>
+                <td>${row[columnMapping.spine] || ''}</td>
+                <td>${displayCutOff}</td>
             </tr>
         `;
-        
-        let tableHtml = '';
-        const maxRows = Math.min(excelData.length, 5);
-        
-        for (let i = 0; i < maxRows; i++) {
-            const row = excelData[i];
-            let displayIsbn = '';
-            if (columnMapping.limpIsbn && row[columnMapping.limpIsbn]) {
-                displayIsbn = row[columnMapping.limpIsbn];
-            } else if (columnMapping.casedIsbn && row[columnMapping.casedIsbn]) {
-                displayIsbn = row[columnMapping.casedIsbn];
-            } else if (columnMapping.isbn && row[columnMapping.isbn]) {
-                displayIsbn = row[columnMapping.isbn];
-            }
-            
-            let displayCutOff = '';
-            if (columnMapping.cutOff && row[columnMapping.cutOff]) {
-                displayCutOff = row[columnMapping.cutOff];
-            } else {
-                const height = row[columnMapping.height];
-                displayCutOff = calculateCutOff(height) || 'N/A';
-            }
-            
-            tableHtml += `
-                <tr>
-                    <td>${displayIsbn || ''}</td>
-                    <td>${row[columnMapping.height] || ''}</td>
-                    <td>${row[columnMapping.width] || ''}</td>
-                    <td>${row[columnMapping.spine] || ''}</td>
-                    <td>${displayCutOff}</td>
-                </tr>
-            `;
-        }
-        
-        excelTableBody.innerHTML = tableHtml;
     }
+    
+    excelTableBody.innerHTML = tableHtml;
+}
     
     // Function to parse XML file and convert to JSON format
     function parseXMLFile(xmlContent) {
@@ -716,19 +713,36 @@ Job_name=${isbn}_c`;
             
             const rootElement = xmlDoc.documentElement;
             
-            const jsonObject = {};
-            
-            const children = rootElement.children;
-            for (let i = 0; i < children.length; i++) {
-                const element = children[i];
-                const tagName = element.tagName;
-                const textContent = element.textContent.trim();
+            // Recursive function to flatten XML structure with dot notation
+            function flattenXML(element, prefix = '') {
+                const result = {};
                 
-                jsonObject[tagName] = textContent || '';
+                // Process child elements
+                for (let i = 0; i < element.children.length; i++) {
+                    const child = element.children[i];
+                    const tagName = child.tagName;
+                    const fullPath = prefix ? `${prefix}.${tagName}` : tagName;
+                    
+                    // Check if this element has child elements or just text
+                    if (child.children.length > 0) {
+                        // Has children - recurse deeper
+                        const nested = flattenXML(child, fullPath);
+                        Object.assign(result, nested);
+                    } else {
+                        // Leaf node - store the value
+                        const textContent = child.textContent.trim();
+                        result[fullPath] = textContent || '';
+                    }
+                }
+                
+                return result;
             }
             
-            console.log("Parsed XML to JSON:", jsonObject);
+            const jsonObject = flattenXML(rootElement);
             
+            console.log("Parsed XML to JSON (flattened):", jsonObject);
+            
+            // Return as array with single object (to match Excel format)
             return [jsonObject];
             
         } catch (error) {
