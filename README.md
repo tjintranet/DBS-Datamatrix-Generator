@@ -155,7 +155,7 @@ Endsheet_height=[4 digits from positions 14-17, always 0000]
 Final_Height=[4 digits from positions 29-32]
 Final_Width=[4 digits from positions 33-36]
 Job-ID=[13 digits from positions 1-13]
-MM_Book_block_height=[Same as Book_block_height]
+MM_Book_block_height=[Book_block_height - no leading zero]
 Transfer_station_processing=[1 digit from position 37]
 Job_name=[ISBN]_c
 ```
