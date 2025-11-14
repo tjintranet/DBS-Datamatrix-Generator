@@ -71,56 +71,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to generate text file content from barcode string
-    function generateTextFileContent(barcodeString) {
-        if (!barcodeString || barcodeString.length !== 37) {
-            console.error("Invalid barcode string for text file generation");
-            return null;
-        }
+function generateTextFileContent(barcodeString) {
+    if (!barcodeString || barcodeString.length !== 37) {
+        console.error("Invalid barcode string for text file generation");
+        return null;
+    }
+    
+    try {
+        const isbn = barcodeString.substring(0, 13);
+        const endsheetHeight = barcodeString.substring(13, 17);
+        const bookBlockThickness = barcodeString.substring(17, 20);
+        const bookBlockHeight = barcodeString.substring(20, 24);
+        const trimOffHead = barcodeString.substring(24, 28);
+        const finalHeight = barcodeString.substring(28, 32);
+        const finalWidth = barcodeString.substring(32, 36);
+        const transferStation = barcodeString.substring(36, 37);
         
-        try {
-            const isbn = barcodeString.substring(0, 13);
-            const endsheetHeight = barcodeString.substring(13, 17);
-            const bookBlockThickness = barcodeString.substring(17, 20);
-            const bookBlockHeight = barcodeString.substring(20, 24);
-            const trimOffHead = barcodeString.substring(24, 28);
-            const finalHeight = barcodeString.substring(28, 32);
-            const finalWidth = barcodeString.substring(32, 36);
-            const transferStation = barcodeString.substring(36, 37);
-            
-            console.log("Text file generation from barcode:");
-            console.log("ISBN:", isbn);
-            console.log("Book_block_thickness:", bookBlockThickness);
-            console.log("Book_block_height:", bookBlockHeight);
-            console.log("Final_Height:", finalHeight);
-            console.log("Final_Width:", finalWidth);
-            console.log("Transfer_station_processing:", transferStation);
-            
-            const formattedBlockHeight = bookBlockHeight.padStart(5, '0');
-            
-            const textContent = `[job]
+        console.log("Text file generation from barcode:");
+        console.log("ISBN:", isbn);
+        console.log("Book_block_thickness:", bookBlockThickness);
+        console.log("Book_block_height:", bookBlockHeight);
+        console.log("Final_Height:", finalHeight);
+        console.log("Final_Width:", finalWidth);
+        console.log("Transfer_station_processing:", transferStation);
+        
+        // For Book_block_height: pad to 5 digits with leading zeros
+        const formattedBlockHeightWithZeros = bookBlockHeight.padStart(5, '0');
+        
+        // For MM_Book_block_height: remove leading zeros, then use the number as-is
+        const formattedBlockHeightNoZeros = parseInt(bookBlockHeight, 10).toString();
+        
+        const textContent = `[job]
 Copies=
 [files]
 File=${isbn}_c.pdf
 PFE_Enrich_Sheet=yes
 PFE_Set_Page=/u/prismapro/data/shared/PFE3-Covers.properties
 [finishing]
-Book_block_height=${formattedBlockHeight}
+Book_block_height=${formattedBlockHeightWithZeros}
 Book_block_thickness=${bookBlockThickness}
 Endsheet_height=${endsheetHeight}
 Final_Height=${finalHeight}
 Final_Width=${finalWidth}
 Job-ID=${isbn}
-MM_Book_block_height=${formattedBlockHeight}
+MM_Book_block_height=${formattedBlockHeightNoZeros}
 Transfer_station_processing=${transferStation}
 Job_name=${isbn}_c`;
-            
-            return textContent;
-            
-        } catch (error) {
-            console.error("Error generating text file content:", error);
-            return null;
-        }
+        
+        return textContent;
+        
+    } catch (error) {
+        console.error("Error generating text file content:", error);
+        return null;
     }
+}
     
     // Function to generate PDF for a single barcode (returns blob)
     async function generatePDFBlob(barcodeString) {
